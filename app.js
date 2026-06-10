@@ -1,67 +1,98 @@
-console.log("APP CARGADA");
 import { db } from "./firebase-config.js";
+
 import {
-  collection,
-  getDocs
+    collection,
+    getDocs
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+console.log("APP CARGADA");
 
 const catalogo = document.getElementById("catalogo-dinamico");
 
 async function cargarPerfumes() {
 
-  catalogo.innerHTML = "<p>Cargando perfumes...</p>";
+    console.log("Iniciando carga de perfumes...");
 
-  try {
+    try {
 
-    const querySnapshot = await getDocs(collection(db, "perfumes"));
+        const querySnapshot = await getDocs(
+            collection(db, "perfumes")
+        );
 
-    catalogo.innerHTML = "";
+        console.log(
+            "Cantidad de documentos:",
+            querySnapshot.size
+        );
 
-    querySnapshot.forEach((doc) => {
+        catalogo.innerHTML = "";
 
-      const perfume = doc.data();
+        querySnapshot.forEach((doc) => {
 
-      catalogo.innerHTML += `
-        <div class="card">
+            const perfume = doc.data();
 
-          <img src="${perfume.imagen}" alt="${perfume.nombre}">
+            console.log("Producto:", perfume);
 
-          <div class="card-content">
+            catalogo.innerHTML += `
+                <div class="card">
 
-            <h3>${perfume.nombre}</h3>
+                    <img
+                        src="${perfume.imagen}"
+                        alt="${perfume.nombre}"
+                        style="width:100%; border-radius:10px;"
+                    >
 
-            <p>${perfume.descripcion}</p>
+                    <div class="card-content">
 
-            <div class="price">
-              $${Number(perfume.precio).toLocaleString("es-AR")}
-            </div>
+                        <h3>${perfume.nombre}</h3>
 
+                        <p>${perfume.descripcion}</p>
+
+                        <div class="price">
+                            $${Number(
+                                perfume.precio
+                            ).toLocaleString("es-AR")}
+                        </div>
+
+                        <p>
+                            Stock: ${perfume.stock}
+                        </p>
+
+                        <a
+                            href="https://wa.me/549XXXXXXXXXX?text=Hola,%20me%20interesa%20${encodeURIComponent(perfume.nombre)}"
+                            target="_blank"
+                            class="btn"
+                        >
+                            Consultar
+                        </a>
+
+                    </div>
+
+                </div>
+            `;
+        });
+
+        if (querySnapshot.size === 0) {
+
+            catalogo.innerHTML = `
+                <p>
+                    No hay perfumes cargados en Firestore.
+                </p>
+            `;
+        }
+
+    } catch (error) {
+
+        console.error(
+            "ERROR FIRESTORE:",
+            error
+        );
+
+        catalogo.innerHTML = `
             <p>
-              Stock: ${perfume.stock}
+                Error cargando productos.
             </p>
-
-            <a
-              class="whatsapp-btn"
-              href="https://wa.me/549XXXXXXXXXX?text=Hola,%20me%20interesa%20${encodeURIComponent(perfume.nombre)}"
-              target="_blank">
-
-              Consultar
-
-            </a>
-
-          </div>
-
-        </div>
-      `;
-    });
-
-  } catch (error) {
-
-    catalogo.innerHTML =
-      "<p>Error cargando productos.</p>";
-
-    console.error(error);
-  }
+        `;
+    }
 }
 
 cargarPerfumes();
